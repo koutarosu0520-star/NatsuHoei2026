@@ -14,6 +14,9 @@ public class GameModeController : MonoBehaviour
     [SerializeField] private PhotoModeController photoModeController;
     [SerializeField] private CameraMode startMode = CameraMode.Video;
 
+    [Header("ゲーム進行(GameController.csと連携)")]
+    [SerializeField] private GameController gameController; // PlayState.Play の間だけTabキーでの切替を受け付ける
+
     public CameraMode CurrentMode { get; private set; }
 
     private void Start()
@@ -23,6 +26,17 @@ public class GameModeController : MonoBehaviour
 
     private void Update()
     {
+        // Play中(ゲーム進行中)以外はモード切替を受け付けない
+        if (gameController != null && gameController.CurrentState != GameController.PlayState.Play)
+        {
+            // 念のため、Play中でなければ常にビデオモード(写真モード無効)に戻しておく
+            if (CurrentMode != CameraMode.Video)
+            {
+                SetMode(CameraMode.Video);
+            }
+            return;
+        }
+
         if (Keyboard.current == null)
         {
             Debug.LogWarning("[GameModeController] Keyboard.current が null です(Input Systemの設定を確認してください)");

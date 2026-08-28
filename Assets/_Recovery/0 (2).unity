@@ -697,10 +697,10 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 2d64857ba3d68af46b48ba6dcf3a1cad, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::GhostSpawner
-  gameController: {fileID: 824410293}
+  gameController: {fileID: 0}
   normalGhostPrefab: {fileID: 8021083027919718915, guid: 55d890d828cfe764ebb678416cdbbe68, type: 3}
   specialGhostPrefab: {fileID: 6260124911411633957, guid: c64281dfcf89f7247bddfb7ca47fd04f, type: 3}
-  bossGhostPrefab: {fileID: 7373506401746608694, guid: fedf6cd2f41914741b446ce2c44ae9cd, type: 3}
+  bossGhostPrefab: {fileID: 0}
   targetCamera: {fileID: 176046990}
   spawnViewportMin: {x: 0.1, y: 0.1}
   spawnViewportMax: {x: 0.9, y: 0.9}
@@ -708,9 +708,7 @@ MonoBehaviour:
   maxAliveNormalGhosts: 5
   normalDefeatsToTriggerSpecial: 5
   specialSpawnCount: 10
-  bossTriggerCondition: 2
   totalDefeatsToTriggerBoss: 15
-  scoreToTriggerBoss: 200
   debugLog: 1
 --- !u!4 &643949473
 Transform:
@@ -847,7 +845,7 @@ Transform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 824410292}
   serializedVersion: 2
-  m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
   m_LocalPosition: {x: 356, y: 200, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
@@ -1126,7 +1124,7 @@ MonoBehaviour:
   spotlight: {fileID: 1412782882}
   photoModeController: {fileID: 1840159357}
   startMode: 0
-  gameController: {fileID: 824410293}
+  gameController: {fileID: 0}
 --- !u!4 &1297171855
 Transform:
   m_ObjectHideFlags: 0
@@ -1798,7 +1796,7 @@ Transform:
   m_GameObject: {fileID: 1507213735}
   serializedVersion: 2
   m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
-  m_LocalPosition: {x: 354.99994, y: 190, z: 0}
+  m_LocalPosition: {x: 354.99994, y: 194.99994, z: 0}
   m_LocalScale: {x: 8, y: 8, z: 10}
   m_ConstrainProportionsScale: 0
   m_Children: []
@@ -1945,7 +1943,7 @@ MonoBehaviour:
     key: 2
   - frame: {fileID: 525561336}
     key: 3
-  shutterSound: {fileID: 8300000, guid: 45299780cec850f4a8f4c6f093b6e43d, type: 3}
+  shutterSound: {fileID: 0}
   shutterMissSound: {fileID: 0}
   shutterSoundVolume: 1
   shutterCooldown: 1
@@ -1969,14 +1967,14 @@ Transform:
 SceneRoots:
   m_ObjectHideFlags: 0
   m_Roots:
-  - {fileID: 360405101}
-  - {fileID: 176046991}
-  - {fileID: 1297171855}
-  - {fileID: 1771466491}
-  - {fileID: 824410294}
-  - {fileID: 1840159358}
   - {fileID: 1412782885}
+  - {fileID: 1297171855}
   - {fileID: 643949473}
+  - {fileID: 1771466491}
+  - {fileID: 1840159358}
   - {fileID: 1507213739}
-  - {fileID: 1501008028}
+  - {fileID: 360405101}
   - {fileID: 525561337}
+  - {fileID: 824410294}
+  - {fileID: 1501008028}
+  - {fileID: 176046991}

@@ -136,7 +136,12 @@ public class PhotoModeController : MonoBehaviour
 
     private void PlaySound(AudioClip clip)
     {
-        if (clip == null) return;
+        if (clip == null)
+        {
+            Debug.LogWarning("[PhotoModeController] AudioClipが未設定のため再生できません");
+            return;
+        }
+        Debug.Log("[PhotoModeController] 効果音を再生: " + clip.name);
         AudioSource.PlayClipAtPoint(clip, Camera.main != null ? Camera.main.transform.position : transform.position, shutterSoundVolume);
     }
 

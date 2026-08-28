@@ -15,9 +15,22 @@ using UnityEngine;
 /// </summary>
 public class GhostSpawner : MonoBehaviour
 {
+    /// <summary>ボスの出現条件として、どの数値を見るかの選択肢</summary>
+    public enum BossTriggerCondition
+    {
+        DefeatCount, // 撃破数のみで判定
+        Score,       // スコアのみで判定
+        Either,      // どちらか先に達成した方で判定(OR)
+        Both         // 両方とも達成して初めて判定(AND)
+    }
+
+    [Header("ゲーム進行(GameController.csと連携)")]
+    [SerializeField] private GameController gameController; // PlayState.Play の間だけ出現処理を行う
+
     [Header("プレハブ")]
     [SerializeField] private Ghost normalGhostPrefab;
     [SerializeField] private Ghost specialGhostPrefab;
+    [SerializeField] private Ghost bossGhostPrefab; // Ghost Type = Boss にしたプレハブ
 
     [Header("出現エリア")]
     [SerializeField] private Camera targetCamera;
@@ -32,14 +45,20 @@ public class GhostSpawner : MonoBehaviour
     [SerializeField] private int normalDefeatsToTriggerSpecial = 5; // 普通の幽霊を何体倒したら特別な幽霊を出すか(仮の値、後で調整)
     [SerializeField] private int specialSpawnCount = 2;              // 一度にまとめて出す特別な幽霊の数
 
+    [Header("ボスの出現条件(ステージに1体のみ)")]
+    [SerializeField] private BossTriggerCondition bossTriggerCondition = BossTriggerCondition.Either;
+    [SerializeField] private int totalDefeatsToTriggerBoss = 15; // 普通+特別の合計撃破数がこれに達したらボスを出す(仮の値)
+    [SerializeField] private int scoreToTriggerBoss = 200;         // 合計スコアがこれに達したらボスを出す(仮の値)
+
     [Header("デバッグ")]
     [SerializeField] private bool debugLog = true;
 
     private readonly List<Ghost> aliveNormalGhosts = new List<Ghost>();
     private int normalDefeatCount = 0;
+    private int totalDefeatCount = 0;
+    private int totalScore = 0;
+    private bool bossSpawned = false;
     private float normalSpawnTimer = 0f;
-
-    private GameController gameController;
 
     private void OnEnable()
     {
@@ -57,14 +76,26 @@ public class GhostSpawner : MonoBehaviour
         {
             targetCamera = Camera.main;
         }
-        gameController=FindObjectOfType<GameController>();
     }
 
     private void Update()
     {
-        if(gameController != null && gameController.CurrentState != GameController.PlayState.Play)
+        // Play中(ゲーム進行中)以外は出現処理を行わない
+        if (gameController != null)
         {
-            return;
+            if (debugLog)
+            {
+                Debug.Log($"[GhostSpawner] GameController.CurrentState = {gameController.CurrentState}");
+            }
+
+            if (gameController.CurrentState != GameController.PlayState.Play)
+            {
+                return;
+            }
+        }
+        else if (debugLog)
+        {
+            Debug.LogWarning("[GhostSpawner] Game Controller が未設定です(参照がnull)");
         }
 
         // リストの掃除(破棄済みの参照を除去)
@@ -84,6 +115,51 @@ public class GhostSpawner : MonoBehaviour
 
     private void HandleGhostDefeated(Ghost ghost)
     {
+        // ボスを倒したらステージクリア扱いにする
+        if (ghost.Type == Ghost.GhostType.Boss)
+        {
+            if (debugLog)
+            {
+                Debug.Log("[GhostSpawner] ボスを撃破しました。ステージクリアにします");
+            }
+
+            if (gameController != null)
+            {
+                gameController.CurrentState = GameController.PlayState.Finish;
+            }
+
+            return; // ボスは合計撃破数のカウントや後続の出現判定に含めない
+        }
+
+        // ボスの出現条件は「普通+特別」の合計撃破数、または合計スコアでカウントする
+        if (ghost.Type == Ghost.GhostType.Normal || ghost.Type == Ghost.GhostType.Special)
+        {
+            totalDefeatCount++;
+            totalScore += ghost.ScoreValue;
+
+            if (debugLog)
+            {
+                Debug.Log($"[GhostSpawner] 合計撃破数: {totalDefeatCount} / {totalDefeatsToTriggerBoss}、合計スコア: {totalScore} / {scoreToTriggerBoss}(ボス出現条件)");
+            }
+
+            bool defeatConditionMet = totalDefeatCount >= totalDefeatsToTriggerBoss;
+            bool scoreConditionMet = totalScore >= scoreToTriggerBoss;
+
+            bool shouldSpawnBoss = bossTriggerCondition switch
+            {
+                BossTriggerCondition.DefeatCount => defeatConditionMet,
+                BossTriggerCondition.Score => scoreConditionMet,
+                BossTriggerCondition.Either => defeatConditionMet || scoreConditionMet,
+                BossTriggerCondition.Both => defeatConditionMet && scoreConditionMet,
+                _ => false
+            };
+
+            if (!bossSpawned && shouldSpawnBoss)
+            {
+                SpawnBoss();
+            }
+        }
+
         if (ghost.Type != Ghost.GhostType.Normal) return;
 
         normalDefeatCount++;
@@ -125,6 +201,23 @@ public class GhostSpawner : MonoBehaviour
         if (debugLog)
         {
             Debug.Log($"[GhostSpawner] 特別な幽霊を {count} 体まとめて出現させました");
+        }
+    }
+
+    private void SpawnBoss()
+    {
+        if (bossGhostPrefab == null)
+        {
+            Debug.LogWarning("[GhostSpawner] ボスの出現条件を満たしましたが、Boss Ghost Prefab が未設定(None)のため出現できません");
+            return;
+        }
+
+        bossSpawned = true; // ステージに1体のみ。以後は出現条件を満たしても再度出さない
+        Instantiate(bossGhostPrefab, GetRandomSpawnPosition(), Quaternion.identity);
+
+        if (debugLog)
+        {
+            Debug.Log("[GhostSpawner] ボスを出現させました");
         }
     }
 
