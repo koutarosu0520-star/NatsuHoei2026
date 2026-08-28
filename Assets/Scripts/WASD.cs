@@ -8,6 +8,7 @@ public class WASD : MonoBehaviour {
     private float _input_x;
     private float _input_y;
 
+
     private GameController __gameController;
 
     void Start()
@@ -16,7 +17,6 @@ public class WASD : MonoBehaviour {
     }
 
     void Update() {
-
         if(__gameController != null && __gameController.CurrentState != GameController.PlayState.Play)
         {
             return;
