@@ -992,6 +992,52 @@ CanvasRenderer:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 622542588}
   m_CullTransparentMesh: 1
+--- !u!1 &631256145
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 631256147}
+  - component: {fileID: 631256146}
+  m_Layer: 0
+  m_Name: SceneMusicTrigger
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!114 &631256146
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 631256145}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: b7020eb5037446a44b88d9557eaff092, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::SceneMusicTrigger
+  sceneMusic: {fileID: 8300000, guid: 30a3c9c8ec422d7409b5a7b1171a5caa, type: 3}
+  loop: 1
+--- !u!4 &631256147
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 631256145}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 358.907, y: 199.57024, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 0}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &649471389
 GameObject:
   m_ObjectHideFlags: 0
@@ -1083,7 +1129,7 @@ MonoBehaviour:
     key: 3
   shutterSound: {fileID: 8300000, guid: 45299780cec850f4a8f4c6f093b6e43d, type: 3}
   shutterMissSound: {fileID: 8300000, guid: 45299780cec850f4a8f4c6f093b6e43d, type: 3}
-  shutterSoundVolume: 1
+  shutterSoundVolume: 0.01
   shutterCooldown: 1
   flashEffect: {fileID: 863412091}
 --- !u!4 &768978320
@@ -2989,3 +3035,4 @@ SceneRoots:
   - {fileID: 1802838754}
   - {fileID: 1367117545}
   - {fileID: 649471391}
+  - {fileID: 631256147}

@@ -197,12 +197,16 @@ MonoBehaviour:
   bossScaleMultiplier: 1.8
   requiredPhotoHits: 3
   stunDuration: 5
+  vanishFadeDuration: 0.5
+  offscreenReappearDelay: 1
   normalSprite: {fileID: 0}
   deadSprite: {fileID: -7690393027686545325, guid: ba631eb70f6e4644e9e63c116d6e3156, type: 3}
   shakeAmount: 0.05
   shakeSpeed: 25
   fadeDuration: 0.8
-  deathSound: {fileID: 0}
+  spawnSound: {fileID: 0}
+  spawnSoundVolume: 1
+  deathSound: {fileID: 8300000, guid: 3599f761f05bced4eb96362a65ccae1d, type: 3}
   deathSoundVolume: 1
   scoreValue: 10
   targetCamera: {fileID: 0}

@@ -1,9 +1,11 @@
 using UnityEngine;
 using UnityEngine.InputSystem;
+using UnityEngine.Rendering.Universal;
 
 /// <summary>
 /// スポットライト(カメラの照準)をWASDで移動させるスクリプト。
 /// ビデオモード中のみ移動でき、写真モード中は SetMovementEnabled(false) で止める想定。
+/// また、写真モード中は SetVisible(false) でライト自体を非表示にする(光もダメージも無効になる)。
 ///
 /// 前提:
 /// ・このオブジェクトに Collider2D(IsTrigger = true)を付け、タグを "Spotlight" にしておく
@@ -15,11 +17,27 @@ public class Spotlight : MonoBehaviour
     [Header("移動設定")]
     [SerializeField] private float speed = 5.0f; // 元コードの50はビューポート換算では速すぎるため調整推奨
 
+    [Header("表示/非表示")]
+    [SerializeField] private Light2D light2D;       // 未設定なら自動でこのオブジェクトから取得を試みる
+    [SerializeField] private Collider2D lightCollider; // 未設定なら自動でこのオブジェクトから取得を試みる
+
     private float inputX;
     private float inputY;
 
     // モードによって外部(モード管理側)から移動可否を切り替える
     private bool movementEnabled = true;
+
+    private void Awake()
+    {
+        if (light2D == null)
+        {
+            light2D = GetComponent<Light2D>();
+        }
+        if (lightCollider == null)
+        {
+            lightCollider = GetComponent<Collider2D>();
+        }
+    }
 
     private void Update()
     {
@@ -76,6 +94,22 @@ public class Spotlight : MonoBehaviour
         {
             inputX = 0f;
             inputY = 0f;
+        }
+    }
+
+    /// <summary>
+    /// ライト自体の表示/非表示を切り替える。写真モード中は false にして、
+    /// 光そのものを消す(見た目だけでなく、ライトの当たり判定も無効になる)。
+    /// </summary>
+    public void SetVisible(bool visible)
+    {
+        if (light2D != null)
+        {
+            light2D.enabled = visible;
+        }
+        if (lightCollider != null)
+        {
+            lightCollider.enabled = visible;
         }
     }
 }

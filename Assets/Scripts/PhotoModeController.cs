@@ -136,12 +136,7 @@ public class PhotoModeController : MonoBehaviour
 
     private void PlaySound(AudioClip clip)
     {
-        if (clip == null)
-        {
-            Debug.LogWarning("[PhotoModeController] AudioClipが未設定のため再生できません");
-            return;
-        }
-        Debug.Log("[PhotoModeController] 効果音を再生: " + clip.name);
+        if (clip == null) return;
         AudioSource.PlayClipAtPoint(clip, Camera.main != null ? Camera.main.transform.position : transform.position, shutterSoundVolume);
     }
 
@@ -160,6 +155,7 @@ public class PhotoModeController : MonoBehaviour
             if (binding.frame != null)
             {
                 binding.frame.SetSelected(false);
+                binding.frame.SetVisible(active); // ビデオモード中は枠自体を非表示にする
             }
         }
         selectedIndex = -1;
