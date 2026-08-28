@@ -66,6 +66,7 @@ public class GhostSpawner : MonoBehaviour
         {
             return;
         }
+
         // リストの掃除(破棄済みの参照を除去)
         aliveNormalGhosts.RemoveAll(g => g == null);
 
