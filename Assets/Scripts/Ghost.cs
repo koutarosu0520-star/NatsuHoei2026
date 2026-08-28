@@ -526,9 +526,14 @@ public class Ghost : MonoBehaviour
 
         if (addScore)
         {
-            // TODO: ScoreManagerが実装されたら置き換える
-            // ScoreManager.Instance.AddScore(scoreValue);
-            Debug.Log($"[Ghost] +{scoreValue} スコア(ScoreManager未実装のため仮表示)");
+            if (ScoreManager.Instance != null)
+            {
+                ScoreManager.Instance.AddScore(scoreValue);
+            }
+            else if (debugLog)
+            {
+                Debug.LogWarning("[Ghost] ScoreManager が見つからないため、スコアを加算できませんでした");
+            }
         }
 
         // スポナー側などに「倒された」ことを知らせる

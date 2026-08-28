@@ -708,6 +708,7 @@ MonoBehaviour:
   maxAliveNormalGhosts: 5
   normalDefeatsToTriggerSpecial: 5
   specialSpawnCount: 10
+  bossEnabled: 1
   bossTriggerCondition: 2
   totalDefeatsToTriggerBoss: 15
   scoreToTriggerBoss: 200
@@ -837,8 +838,10 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::GameController
   CurrentState: 0
   countStartTime: 5
+  timeLimit: 60
   countdownText: {fileID: 1376161005}
   timerText: {fileID: 714928170}
+  timeUpPanel: {fileID: 0}
 --- !u!4 &824410294
 Transform:
   m_ObjectHideFlags: 0
