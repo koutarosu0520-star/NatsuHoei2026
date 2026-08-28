@@ -943,6 +943,7 @@ MonoBehaviour:
   spotlight: {fileID: 537035544}
   photoModeController: {fileID: 768978319}
   startMode: 0
+  gameController: {fileID: 0}
 --- !u!4 &1110387711
 Transform:
   m_ObjectHideFlags: 0
@@ -1293,7 +1294,7 @@ Transform:
   m_GameObject: {fileID: 1278281361}
   serializedVersion: 2
   m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
-  m_LocalPosition: {x: 354.99994, y: 194.99994, z: 0}
+  m_LocalPosition: {x: 354.99994, y: 190, z: 0}
   m_LocalScale: {x: 8, y: 8, z: 10}
   m_ConstrainProportionsScale: 0
   m_Children: []
@@ -1509,8 +1510,10 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 2d64857ba3d68af46b48ba6dcf3a1cad, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::GhostSpawner
+  gameController: {fileID: 1736837964}
   normalGhostPrefab: {fileID: 8021083027919718915, guid: 55d890d828cfe764ebb678416cdbbe68, type: 3}
   specialGhostPrefab: {fileID: 6260124911411633957, guid: c64281dfcf89f7247bddfb7ca47fd04f, type: 3}
+  bossGhostPrefab: {fileID: 0}
   targetCamera: {fileID: 1254936268}
   spawnViewportMin: {x: 0.1, y: 0.1}
   spawnViewportMax: {x: 0.9, y: 0.9}
@@ -1518,6 +1521,9 @@ MonoBehaviour:
   maxAliveNormalGhosts: 5
   normalDefeatsToTriggerSpecial: 5
   specialSpawnCount: 10
+  bossTriggerCondition: 2
+  totalDefeatsToTriggerBoss: 15
+  scoreToTriggerBoss: 200
   debugLog: 1
 --- !u!4 &1570149250
 Transform:

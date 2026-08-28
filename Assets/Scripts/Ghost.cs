@@ -58,6 +58,8 @@ public class Ghost : MonoBehaviour
     [SerializeField] private float bossScaleMultiplier = 1.8f;   // 通常の幽霊より大きく表示する倍率
     [SerializeField] private int requiredPhotoHits = 3;           // 撃破に必要な写真ヒット数
     [SerializeField] private float stunDuration = 5f;             // スタン(写真で撃てる状態)の持続時間
+    [SerializeField] private float vanishFadeDuration = 0.5f;     // スタン復帰時、姿を消す/現すフェードの時間
+    [SerializeField] private float offscreenReappearDelay = 1f;   // 姿を消してから画面外に移動し、再登場するまでの待機時間
 
     [Header("演出")]
     [SerializeField] private Sprite normalSprite;
@@ -67,6 +69,8 @@ public class Ghost : MonoBehaviour
     [SerializeField] private float fadeDuration = 0.8f;
 
     [Header("サウンド")]
+    [SerializeField] private AudioClip spawnSound;
+    [SerializeField] private float spawnSoundVolume = 1f;
     [SerializeField] private AudioClip deathSound;
     [SerializeField] private float deathSoundVolume = 1f;
 
@@ -84,6 +88,7 @@ public class Ghost : MonoBehaviour
     [SerializeField] private GameController gameController; // PlayState.Play の間だけ行動する(未設定なら常に動作する)
 
     private SpriteRenderer spriteRenderer;
+    private Collider2D bodyCollider; // ボスが消えている間、当たり判定を切るために使う
 
     // 実際の(震えを含まない)論理位置。Wander()はここを動かす。
     // 見た目のtransform.positionは、これに震えオフセットを足したものになる。
@@ -101,12 +106,14 @@ public class Ghost : MonoBehaviour
     private BossPhase bossPhase = BossPhase.LightPhase;
     private int bossHitsTaken = 0;
     private float stunTimer = 0f;
+    private bool isVanished = false; // 消失→画面外移動→再登場の演出中はtrue(移動処理を止める)
 
     private float MoveSpeed => ghostType == GhostType.Special ? moveSpeedSpecial : moveSpeedNormal;
 
     private void Awake()
     {
         spriteRenderer = GetComponent<SpriteRenderer>();
+        bodyCollider = GetComponent<Collider2D>();
         if (normalSprite != null)
         {
             spriteRenderer.sprite = normalSprite;
@@ -133,6 +140,11 @@ public class Ghost : MonoBehaviour
         }
 
         PickNewWanderTarget();
+
+        if (spawnSound != null)
+        {
+            AudioSource.PlayClipAtPoint(spawnSound, transform.position, spawnSoundVolume);
+        }
     }
 
     /// <summary>カメラの映る範囲(ビューポート)から徘徊範囲(ワールド座標)を計算する</summary>
@@ -153,6 +165,12 @@ public class Ghost : MonoBehaviour
         // Play中(ゲーム進行中)以外は行動を停止する(死亡演出中は止めない)
         if (gameController != null && gameController.CurrentState != GameController.PlayState.Play)
         {
+            return;
+        }
+
+        if (isVanished)
+        {
+            // 消失→画面外移動→再登場の演出中は、それ以外の処理(移動・ライト判定・画面外消滅)を行わない
             return;
         }
 
@@ -378,9 +396,8 @@ public class Ghost : MonoBehaviour
             }
             else
             {
-                // まだ撃破に至らない場合は、体力を回復してライトフェーズへ戻す
-                bossPhase = BossPhase.LightPhase;
-                currentHealth = maxHealth;
+                // まだ撃破に至らない場合は、次のライトフェーズへ戻る(姿を消して画面外から再登場)
+                RecoverFromStun();
             }
         }
     }
@@ -400,13 +417,107 @@ public class Ghost : MonoBehaviour
     /// <summary>ボス:スタン中に撮影されないまま時間切れになった場合、ヒット無しでライトフェーズへ戻す</summary>
     private void EndStunWithoutHit()
     {
-        bossPhase = BossPhase.LightPhase;
-        currentHealth = maxHealth;
-
         if (debugLog)
         {
             Debug.Log($"[{gameObject.name}] ボスのスタンが時間切れ。ライトフェーズに戻ります");
         }
+
+        RecoverFromStun();
+    }
+
+    /// <summary>
+    /// スタンから復帰してライトフェーズへ戻る共通処理。
+    /// 体力を回復し、その場では復帰させず、一旦姿を消して画面外へ移動し、そこから再登場する。
+    /// </summary>
+    private void RecoverFromStun()
+    {
+        bossPhase = BossPhase.LightPhase;
+        currentHealth = maxHealth;
+
+        // 光源との接触状態をリセットしておく(コライダーを切るため)
+        isLit = false;
+        litSpotlightTransform = null;
+
+        StartCoroutine(VanishAndReappearRoutine());
+    }
+
+    /// <summary>ボス演出:姿を消す → 画面外へ移動 → 一定時間待つ → 姿を現す</summary>
+    private IEnumerator VanishAndReappearRoutine()
+    {
+        isVanished = true;
+
+        if (bodyCollider != null)
+        {
+            bodyCollider.enabled = false;
+        }
+
+        // フェードアウト
+        yield return StartCoroutine(FadeSpriteAlpha(1f, 0f, vanishFadeDuration));
+
+        // 画面外の位置へ瞬間移動
+        basePosition = GetRandomOffscreenPosition();
+        transform.position = basePosition;
+
+        yield return new WaitForSeconds(offscreenReappearDelay);
+
+        if (bodyCollider != null)
+        {
+            bodyCollider.enabled = true;
+        }
+
+        // フェードイン
+        yield return StartCoroutine(FadeSpriteAlpha(0f, 1f, vanishFadeDuration));
+
+        // 画面内に向かって歩き出すよう、新しい徘徊目標を選び直す
+        PickNewWanderTarget();
+
+        isVanished = false;
+    }
+
+    /// <summary>SpriteRendererのアルファ値を指定時間かけて変化させる汎用コルーチン</summary>
+    private IEnumerator FadeSpriteAlpha(float from, float to, float duration)
+    {
+        float t = 0f;
+        Color c = spriteRenderer.color;
+
+        while (t < duration)
+        {
+            t += Time.deltaTime;
+            c.a = Mathf.Lerp(from, to, t / duration);
+            spriteRenderer.color = c;
+            yield return null;
+        }
+
+        c.a = to;
+        spriteRenderer.color = c;
+    }
+
+    /// <summary>カメラの映る範囲のすぐ外側(画面端の外)にランダムな位置を1つ返す</summary>
+    private Vector3 GetRandomOffscreenPosition()
+    {
+        if (targetCamera == null)
+        {
+            return basePosition;
+        }
+
+        float z = -targetCamera.transform.position.z;
+
+        // 上下左右どこから登場するかをランダムに決める
+        int side = Random.Range(0, 4); // 0:左 1:右 2:下 3:上
+        float edgeOffset = 0.15f; // 画面端からどれだけ外側に出すか(ビューポート比率)
+
+        float vx, vy;
+        switch (side)
+        {
+            case 0: vx = -edgeOffset; vy = Random.Range(0f, 1f); break;
+            case 1: vx = 1f + edgeOffset; vy = Random.Range(0f, 1f); break;
+            case 2: vx = Random.Range(0f, 1f); vy = -edgeOffset; break;
+            default: vx = Random.Range(0f, 1f); vy = 1f + edgeOffset; break;
+        }
+
+        Vector3 worldPos = targetCamera.ViewportToWorldPoint(new Vector3(vx, vy, z));
+        worldPos.z = 0f;
+        return worldPos;
     }
 
     private IEnumerator DieRoutine(bool addScore, bool instant = false)
@@ -477,6 +588,7 @@ public class Ghost : MonoBehaviour
     // 画面外に出て消えた場合はここでは呼ばれない(倒した扱いにはしないため)。
     public static event System.Action<Ghost> OnGhostDefeated;
     public GhostType Type => ghostType;
+    public int ScoreValue => scoreValue;
     public bool IsLit => isLit;
     public bool IsVulnerableToPhoto => ghostType == GhostType.Special || (ghostType == GhostType.Boss && bossPhase == BossPhase.Stunned);
     public bool IsDying => isDying;
