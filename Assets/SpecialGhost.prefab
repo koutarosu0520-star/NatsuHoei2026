@@ -13,7 +13,7 @@ GameObject:
   - component: {fileID: 3826813922773339245}
   - component: {fileID: 2475803355176601374}
   - component: {fileID: 6260124911411633957}
-  m_Layer: 0
+  m_Layer: 2
   m_Name: SpecialGhost
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -156,7 +156,7 @@ BoxCollider2D:
   m_UsedByEffector: 0
   m_CompositeOperation: 0
   m_CompositeOrder: 0
-  m_Offset: {x: 0, y: 0}
+  m_Offset: {x: -0.06124878, y: 0}
   m_SpriteTilingProperty:
     border: {x: 0, y: 0, z: 0, w: 0}
     pivot: {x: 0.5, y: 0.5}
@@ -166,7 +166,7 @@ BoxCollider2D:
     drawMode: 0
     adaptiveTiling: 0
   m_AutoTiling: 0
-  m_Size: {x: 1, y: 1}
+  m_Size: {x: 4.307434, y: 5.328247}
   m_EdgeRadius: 0
 --- !u!114 &6260124911411633957
 MonoBehaviour:
@@ -182,9 +182,11 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::Ghost
   ghostType: 1
   moveSpeedNormal: 1.5
-  moveSpeedSpecial: 2.2
-  wanderRadius: 3
-  wanderInterval: 2
+  moveSpeedSpecial: 9
+  wanderRadius: 9
+  wanderInterval: 3
+  useCameraBoundsForArea: 1
+  areaViewportMargin: {x: 0.05, y: 0.05}
   areaMin: {x: -8, y: -4}
   areaMax: {x: 8, y: 4}
   maxHealth: 100
