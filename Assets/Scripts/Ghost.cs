@@ -67,6 +67,7 @@ public class Ghost : MonoBehaviour
     [SerializeField] private float shakeAmount = 0.05f;
     [SerializeField] private float shakeSpeed = 25f;
     [SerializeField] private float fadeDuration = 0.8f;
+    [SerializeField] private float spawnFadeInDuration = 0.6f; // 出現時、透明から徐々に見えるようになるまでの時間
 
     [Header("サウンド")]
     [SerializeField] private AudioClip spawnSound;
@@ -125,6 +126,11 @@ public class Ghost : MonoBehaviour
         {
             transform.localScale *= bossScaleMultiplier;
         }
+
+        // 出現直後は透明にしておき、Start()でフェードインさせる
+        Color c = spriteRenderer.color;
+        c.a = 0f;
+        spriteRenderer.color = c;
     }
 
     private void Start()
@@ -145,6 +151,8 @@ public class Ghost : MonoBehaviour
         {
             AudioSource.PlayClipAtPoint(spawnSound, transform.position, spawnSoundVolume);
         }
+
+        StartCoroutine(FadeSpriteAlpha(0f, 1f, spawnFadeInDuration));
     }
 
     /// <summary>カメラの映る範囲(ビューポート)から徘徊範囲(ワールド座標)を計算する</summary>

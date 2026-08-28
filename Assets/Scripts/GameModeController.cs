@@ -65,6 +65,7 @@ public class GameModeController : MonoBehaviour
         if (spotlight != null)
         {
             spotlight.SetMovementEnabled(isVideo);
+            spotlight.SetVisible(isVideo); // 写真モード中はライト自体を非表示にする
         }
 
         if (photoModeController != null)
