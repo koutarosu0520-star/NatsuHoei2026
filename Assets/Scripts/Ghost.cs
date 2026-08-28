@@ -20,7 +20,14 @@ public class Ghost : MonoBehaviour
     public enum GhostType
     {
         Normal,   // 普通の幽霊:ライトで倒せる
-        Special   // 特別な幽霊:ライト無効、写真モードでのみ倒せる
+        Special,  // 特別な幽霊:ライト無効、写真モードでのみ倒せる
+        Boss      // ボス:ライトで弱らせてスタンさせ、写真で1ヒット。これを既定回数繰り返すと撃破
+    }
+
+    private enum BossPhase
+    {
+        LightPhase, // ライトで体力を削る段階
+        Stunned     // 体力が尽きてスタン中。写真で撃てる
     }
 
     [Header("種類")]
@@ -32,16 +39,25 @@ public class Ghost : MonoBehaviour
     [SerializeField] private float wanderRadius = 3f;       // 現在地からどこまでランダムな目的地を選ぶか
     [SerializeField] private float wanderInterval = 2f;      // 何秒ごとに目的地を選び直すか
 
+    [Header("ライトから逃げる動き(ステージごとにON/OFF可能)")]
+    [SerializeField] private bool fleeFromLightWhenLit = false; // ONにすると、ライトに当たっている間は光源から逃げる方向へ移動する(普通/特別どちらの幽霊にも設定可能)
+    [SerializeField] private float fleeSpeedMultiplier = 1.4f;  // 逃げている間、通常の移動速度に対して何倍の速さで逃げるか
+
     [Header("徘徊範囲")]
     [SerializeField] private bool useCameraBoundsForArea = true; // trueならカメラの映る範囲を自動で徘徊範囲にする
     [SerializeField] private Vector2 areaViewportMargin = new Vector2(0.05f, 0.05f); // カメラ基準の場合、画面端からの余白(ビューポート比率)
     [SerializeField] private Vector2 areaMin = new Vector2(-8, -4); // useCameraBoundsForArea = false の場合に使う固定範囲
     [SerializeField] private Vector2 areaMax = new Vector2(8, 4);
 
-    [Header("ライト被弾設定(普通の幽霊のみ)")]
+    [Header("ライト被弾設定(普通の幽霊・ボスのライトフェーズ)")]
     [SerializeField] private float maxHealth = 100f;
     [SerializeField] private float damagePerSecond = 70f; // ライトに当たっている間、1秒あたり何ポイント体力を減らすか
     [SerializeField] private string spotlightTag = "Spotlight";
+
+    [Header("ボス設定(Ghost Type = Boss の時のみ使用)")]
+    [SerializeField] private float bossScaleMultiplier = 1.8f;   // 通常の幽霊より大きく表示する倍率
+    [SerializeField] private int requiredPhotoHits = 3;           // 撃破に必要な写真ヒット数
+    [SerializeField] private float stunDuration = 5f;             // スタン(写真で撃てる状態)の持続時間
 
     [Header("演出")]
     [SerializeField] private Sprite normalSprite;
@@ -64,6 +80,9 @@ public class Ghost : MonoBehaviour
     [Header("デバッグ")]
     [SerializeField] private bool debugLog = true; // 原因調査用。安定したらfalseにしてOK
 
+    [Header("ゲーム進行(GameController.csと連携)")]
+    [SerializeField] private GameController gameController; // PlayState.Play の間だけ行動する(未設定なら常に動作する)
+
     private SpriteRenderer spriteRenderer;
 
     // 実際の(震えを含まない)論理位置。Wander()はここを動かす。
@@ -74,8 +93,14 @@ public class Ghost : MonoBehaviour
     private float wanderTimer;
 
     private bool isLit = false;
+    private Transform litSpotlightTransform; // 現在当たっているライトの位置(逃げる方向の計算に使う)
     private float currentHealth;
     private bool isDying = false;
+
+    // ボス専用の状態
+    private BossPhase bossPhase = BossPhase.LightPhase;
+    private int bossHitsTaken = 0;
+    private float stunTimer = 0f;
 
     private float MoveSpeed => ghostType == GhostType.Special ? moveSpeedSpecial : moveSpeedNormal;
 
@@ -88,6 +113,11 @@ public class Ghost : MonoBehaviour
         }
         basePosition = transform.position;
         currentHealth = maxHealth;
+
+        if (ghostType == GhostType.Boss)
+        {
+            transform.localScale *= bossScaleMultiplier;
+        }
     }
 
     private void Start()
@@ -120,6 +150,12 @@ public class Ghost : MonoBehaviour
     {
         if (isDying) return;
 
+        // Play中(ゲーム進行中)以外は行動を停止する(死亡演出中は止めない)
+        if (gameController != null && gameController.CurrentState != GameController.PlayState.Play)
+        {
+            return;
+        }
+
         Wander();
 
         if (IsOutsideScreen())
@@ -129,7 +165,21 @@ public class Ghost : MonoBehaviour
             return;
         }
 
-        if (isLit && ghostType == GhostType.Normal)
+        // ボスのスタン中はタイマーを進める(写真で撃たれず時間切れになったらライトフェーズへ戻す)
+        if (ghostType == GhostType.Boss && bossPhase == BossPhase.Stunned)
+        {
+            stunTimer -= Time.deltaTime;
+            if (stunTimer <= 0f)
+            {
+                EndStunWithoutHit();
+            }
+        }
+
+        bool canTakeLightDamage =
+            (ghostType == GhostType.Normal) ||
+            (ghostType == GhostType.Boss && bossPhase == BossPhase.LightPhase);
+
+        if (isLit && canTakeLightDamage)
         {
             currentHealth -= damagePerSecond * Time.deltaTime;
             ApplyShake();
@@ -141,7 +191,14 @@ public class Ghost : MonoBehaviour
 
             if (currentHealth <= 0f)
             {
-                KillByLight();
+                if (ghostType == GhostType.Boss)
+                {
+                    EnterStunPhase();
+                }
+                else
+                {
+                    KillByLight();
+                }
             }
         }
         else
@@ -152,9 +209,30 @@ public class Ghost : MonoBehaviour
     }
 
     // ------------------------------
-    // 移動(ランダム徘徊)
+    // 移動(ランダム徘徊 / ライトから逃げる)
     // ------------------------------
     private void Wander()
+    {
+        bool shouldFlee = fleeFromLightWhenLit && isLit && litSpotlightTransform != null;
+
+        if (shouldFlee)
+        {
+            FleeFromLight();
+        }
+        else
+        {
+            NormalWander();
+        }
+
+        // ライトが当たっていない時はここで見た目にも反映する
+        // (当たっている時はApplyShake側で震えを加えた位置を設定する)
+        if (!isLit)
+        {
+            transform.position = basePosition;
+        }
+    }
+
+    private void NormalWander()
     {
         wanderTimer -= Time.deltaTime;
         if (wanderTimer <= 0f || Vector2.Distance(basePosition, currentTarget) < 0.1f)
@@ -165,13 +243,33 @@ public class Ghost : MonoBehaviour
         Vector2 pos = basePosition;
         Vector2 next = Vector2.MoveTowards(pos, currentTarget, MoveSpeed * Time.deltaTime);
         basePosition = new Vector3(next.x, next.y, basePosition.z);
+    }
 
-        // ライトが当たっていない時はここで見た目にも反映する
-        // (当たっている時はApplyShake側で震えを加えた位置を設定する)
-        if (!isLit)
+    /// <summary>ライトが当たっている間、光源から遠ざかる方向へ移動する(LV2以降で使用)</summary>
+    private void FleeFromLight()
+    {
+        Vector2 fleeDirection = ((Vector2)basePosition - (Vector2)litSpotlightTransform.position);
+
+        // ちょうど重なっている等で方向が定まらない場合は、ランダムな方向に逃がす
+        if (fleeDirection.sqrMagnitude < 0.0001f)
         {
-            transform.position = basePosition;
+            fleeDirection = Random.insideUnitCircle;
         }
+        fleeDirection.Normalize();
+
+        float fleeSpeed = MoveSpeed * fleeSpeedMultiplier;
+        Vector2 next = (Vector2)basePosition + fleeDirection * fleeSpeed * Time.deltaTime;
+
+        // 徘徊範囲の外に逃げすぎないようクランプ
+        next.x = Mathf.Clamp(next.x, areaMin.x, areaMax.x);
+        next.y = Mathf.Clamp(next.y, areaMin.y, areaMax.y);
+
+        basePosition = new Vector3(next.x, next.y, basePosition.z);
+
+        // 逃走中は、ライトが外れた後の徘徊が変な方向へ飛ばないよう、
+        // 現在地を新しい目的地として同期しておく
+        currentTarget = next;
+        wanderTimer = wanderInterval;
     }
 
     private void PickNewWanderTarget()
@@ -210,6 +308,7 @@ public class Ghost : MonoBehaviour
         if (other.CompareTag(spotlightTag))
         {
             isLit = true;
+            litSpotlightTransform = other.transform;
             if (debugLog) Debug.Log($"[{gameObject.name}] ライト接触開始: isLit = true");
         }
     }
@@ -219,6 +318,7 @@ public class Ghost : MonoBehaviour
         if (other.CompareTag(spotlightTag))
         {
             isLit = false;
+            litSpotlightTransform = null;
             transform.position = basePosition;
             if (debugLog) Debug.Log($"[{gameObject.name}] ライト接触終了: isLit = false");
         }
@@ -248,13 +348,65 @@ public class Ghost : MonoBehaviour
     }
 
     /// <summary>
-    /// 特別な幽霊が写真モードで撮影され撃破された時に、
+    /// 特別な幽霊 / ボスが写真モードで撮影された時に、
     /// カメラ側のスクリプトから呼び出す想定のメソッド。
+    /// ・特別な幽霊:即座に撃破
+    /// ・ボス:スタン中のみ有効。既定回数ヒットしたら撃破、それ未満なら次のライトフェーズへ
+    /// ・普通の幽霊:何もしない
     /// </summary>
     public void KillByPhoto()
     {
         if (isDying) return;
-        StartCoroutine(DieRoutine(addScore: true, instant: true));
+
+        if (ghostType == GhostType.Special)
+        {
+            StartCoroutine(DieRoutine(addScore: true, instant: true));
+        }
+        else if (ghostType == GhostType.Boss)
+        {
+            if (bossPhase != BossPhase.Stunned) return; // スタン中でなければ撮影しても効果なし
+
+            bossHitsTaken++;
+            if (debugLog)
+            {
+                Debug.Log($"[{gameObject.name}] ボスに写真ヒット: {bossHitsTaken} / {requiredPhotoHits}");
+            }
+
+            if (bossHitsTaken >= requiredPhotoHits)
+            {
+                StartCoroutine(DieRoutine(addScore: true, instant: true));
+            }
+            else
+            {
+                // まだ撃破に至らない場合は、体力を回復してライトフェーズへ戻す
+                bossPhase = BossPhase.LightPhase;
+                currentHealth = maxHealth;
+            }
+        }
+    }
+
+    /// <summary>ボス:体力が尽きた時にスタン状態へ移行する(ライト無効、写真で撃てる)</summary>
+    private void EnterStunPhase()
+    {
+        bossPhase = BossPhase.Stunned;
+        stunTimer = stunDuration;
+
+        if (debugLog)
+        {
+            Debug.Log($"[{gameObject.name}] ボスがスタンしました(残り{stunDuration}秒以内に撮影してください)");
+        }
+    }
+
+    /// <summary>ボス:スタン中に撮影されないまま時間切れになった場合、ヒット無しでライトフェーズへ戻す</summary>
+    private void EndStunWithoutHit()
+    {
+        bossPhase = BossPhase.LightPhase;
+        currentHealth = maxHealth;
+
+        if (debugLog)
+        {
+            Debug.Log($"[{gameObject.name}] ボスのスタンが時間切れ。ライトフェーズに戻ります");
+        }
     }
 
     private IEnumerator DieRoutine(bool addScore, bool instant = false)
@@ -326,6 +478,7 @@ public class Ghost : MonoBehaviour
     public static event System.Action<Ghost> OnGhostDefeated;
     public GhostType Type => ghostType;
     public bool IsLit => isLit;
+    public bool IsVulnerableToPhoto => ghostType == GhostType.Special || (ghostType == GhostType.Boss && bossPhase == BossPhase.Stunned);
     public bool IsDying => isDying;
     public float CurrentHealth => currentHealth;
     public float MaxHealth => maxHealth;
