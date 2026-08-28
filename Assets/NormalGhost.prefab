@@ -185,6 +185,8 @@ MonoBehaviour:
   moveSpeedSpecial: 2.2
   wanderRadius: 3
   wanderInterval: 2
+  fleeFromLightWhenLit: 1
+  fleeSpeedMultiplier: 1.4
   useCameraBoundsForArea: 1
   areaViewportMargin: {x: 0.05, y: 0.05}
   areaMin: {x: -8, y: -4}
@@ -192,6 +194,9 @@ MonoBehaviour:
   maxHealth: 100
   damagePerSecond: 70
   spotlightTag: Spotlight
+  bossScaleMultiplier: 1.8
+  requiredPhotoHits: 3
+  stunDuration: 5
   normalSprite: {fileID: 0}
   deadSprite: {fileID: -7690393027686545325, guid: ba631eb70f6e4644e9e63c116d6e3156, type: 3}
   shakeAmount: 0.05
@@ -203,3 +208,4 @@ MonoBehaviour:
   targetCamera: {fileID: 0}
   offscreenMargin: 0.5
   debugLog: 1
+  gameController: {fileID: 0}
