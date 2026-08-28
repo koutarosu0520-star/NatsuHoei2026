@@ -46,9 +46,10 @@ public class GhostSpawner : MonoBehaviour
     [SerializeField] private int specialSpawnCount = 2;              // 一度にまとめて出す特別な幽霊の数
 
     [Header("ボスの出現条件(ステージに1体のみ)")]
+    [SerializeField] private bool bossEnabled = true; // OFFにすると、このステージではボスを一切出現させない(LV1/LV2用)
     [SerializeField] private BossTriggerCondition bossTriggerCondition = BossTriggerCondition.Either;
     [SerializeField] private int totalDefeatsToTriggerBoss = 15; // 普通+特別の合計撃破数がこれに達したらボスを出す(仮の値)
-    [SerializeField] private int scoreToTriggerBoss = 200;         // 合計スコアがこれに達したらボスを出す(仮の値)
+    [SerializeField] private int scoreToTriggerBoss = 200;         // 合計スコア(ScoreManager基準)がこれに達したらボスを出す(仮の値)
 
     [Header("デバッグ")]
     [SerializeField] private bool debugLog = true;
@@ -56,7 +57,6 @@ public class GhostSpawner : MonoBehaviour
     private readonly List<Ghost> aliveNormalGhosts = new List<Ghost>();
     private int normalDefeatCount = 0;
     private int totalDefeatCount = 0;
-    private int totalScore = 0;
     private bool bossSpawned = false;
     private float normalSpawnTimer = 0f;
 
@@ -131,19 +131,21 @@ public class GhostSpawner : MonoBehaviour
             return; // ボスは合計撃破数のカウントや後続の出現判定に含めない
         }
 
-        // ボスの出現条件は「普通+特別」の合計撃破数、または合計スコアでカウントする
-        if (ghost.Type == Ghost.GhostType.Normal || ghost.Type == Ghost.GhostType.Special)
+        // ボスの出現条件は「普通+特別」の合計撃破数、またはScoreManagerの合計スコアでカウントする
+        // (このステージでボスを使わない設定(LV1/LV2など)の場合は判定自体を行わない)
+        if (bossEnabled && (ghost.Type == Ghost.GhostType.Normal || ghost.Type == Ghost.GhostType.Special))
         {
             totalDefeatCount++;
-            totalScore += ghost.ScoreValue;
+
+            int currentScore = ScoreManager.Instance != null ? ScoreManager.Instance.CurrentScore : 0;
 
             if (debugLog)
             {
-                Debug.Log($"[GhostSpawner] 合計撃破数: {totalDefeatCount} / {totalDefeatsToTriggerBoss}、合計スコア: {totalScore} / {scoreToTriggerBoss}(ボス出現条件)");
+                Debug.Log($"[GhostSpawner] 合計撃破数: {totalDefeatCount} / {totalDefeatsToTriggerBoss}、合計スコア: {currentScore} / {scoreToTriggerBoss}(ボス出現条件)");
             }
 
             bool defeatConditionMet = totalDefeatCount >= totalDefeatsToTriggerBoss;
-            bool scoreConditionMet = totalScore >= scoreToTriggerBoss;
+            bool scoreConditionMet = currentScore >= scoreToTriggerBoss;
 
             bool shouldSpawnBoss = bossTriggerCondition switch
             {
