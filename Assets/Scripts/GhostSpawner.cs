@@ -39,6 +39,8 @@ public class GhostSpawner : MonoBehaviour
     private int normalDefeatCount = 0;
     private float normalSpawnTimer = 0f;
 
+    private GameController gameController;
+
     private void OnEnable()
     {
         Ghost.OnGhostDefeated += HandleGhostDefeated;
@@ -55,10 +57,15 @@ public class GhostSpawner : MonoBehaviour
         {
             targetCamera = Camera.main;
         }
+        gameController=FindObjectOfType<GameController>();
     }
 
     private void Update()
     {
+        if(gameController != null && gameController.CurrentState != GameController.PlayState.Play)
+        {
+            return;
+        }
         // リストの掃除(破棄済みの参照を除去)
         aliveNormalGhosts.RemoveAll(g => g == null);
 

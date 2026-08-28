@@ -8,7 +8,20 @@ public class WASD : MonoBehaviour {
     private float _input_x;
     private float _input_y;
 
+    private GameController __gameController;
+
+    void Start()
+    {
+        __gameController=FindObjectOfType<GameController>();
+    }
+
     void Update() {
+
+        if(__gameController != null && __gameController.CurrentState != GameController.PlayState.Play)
+        {
+            return;
+        }
+        
         _input_x = 0f;
         _input_y = 0f;
 
