@@ -204,6 +204,7 @@ MonoBehaviour:
   shakeAmount: 0.05
   shakeSpeed: 25
   fadeDuration: 0.8
+  spawnFadeInDuration: 0.6
   spawnSound: {fileID: 0}
   spawnSoundVolume: 1
   deathSound: {fileID: 8300000, guid: 3599f761f05bced4eb96362a65ccae1d, type: 3}
@@ -211,5 +212,5 @@ MonoBehaviour:
   scoreValue: 10
   targetCamera: {fileID: 0}
   offscreenMargin: 0.5
-  debugLog: 1
+  debugLog: 0
   gameController: {fileID: 0}
