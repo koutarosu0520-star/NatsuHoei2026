@@ -436,8 +436,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 14b4b3bea3acc144d899c4de3a501fe6, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::MusicManager
-  defaultVolume: 0.001
-  fadeDuration: 0.5
+  defaultVolume: 0.007
+  fadeDuration: 0
 --- !u!4 &946853562
 Transform:
   m_ObjectHideFlags: 0

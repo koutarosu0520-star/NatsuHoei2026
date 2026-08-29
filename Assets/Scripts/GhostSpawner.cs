@@ -27,6 +27,9 @@ public class GhostSpawner : MonoBehaviour
     [Header("ゲーム進行(GameController.csと連携)")]
     [SerializeField] private GameController gameController; // PlayState.Play の間だけ出現処理を行う
 
+    [Header("クリア時の演出(ボス撃破時)")]
+    [SerializeField] private GameObject clearPanel; // ボス撃破時に表示するパネル(未設定でも可)
+
     [Header("プレハブ")]
     [SerializeField] private Ghost normalGhostPrefab;
     [SerializeField] private Ghost specialGhostPrefab;
@@ -126,6 +129,16 @@ public class GhostSpawner : MonoBehaviour
             if (gameController != null)
             {
                 gameController.CurrentState = GameController.PlayState.Finish;
+            }
+
+            // GameController はタイムアップ時しか停止処理をしないため、
+            // ボス撃破によるクリアはここで明示的に時間を止め、クリア画面を表示する
+            Time.timeScale = 0f;
+
+            if (clearPanel != null)
+            {
+                clearPanel.SetActive(true);
+                clearPanel.transform.SetAsLastSibling();
             }
 
             return; // ボスは合計撃破数のカウントや後続の出現判定に含めない
