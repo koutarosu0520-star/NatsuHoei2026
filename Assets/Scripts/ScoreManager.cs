@@ -1,70 +1,114 @@
 using System;
 using UnityEngine;
-using UnityEngine.UI;
+using TMPro;
 
-/// <summary>
-/// スコアを一元管理するマネージャー。シーンに1つだけ配置する。
-/// Ghost.cs の撃破時に AddScore() が呼ばれ、合計スコアを保持・UI表示する。
-/// </summary>
 public class ScoreManager : MonoBehaviour
 {
     public static ScoreManager Instance { get; private set; }
 
-    /// <summary>スコアが変化するたびに呼ばれる(QuotaManagerなどが購読して使う)</summary>
+    public int CurrentScore { get; private set; } 
     public static event Action<int> OnScoreChanged;
 
-    [Header("UI表示(任意)")]
-    [SerializeField] private Text scoreText;
-    [SerializeField] private string scoreFormat = "Score: {0}";
+    [Header("種類別のノルマ設定")]
+    [SerializeField] private int normalGhostQuota = 10;
+    [SerializeField] private int specialGhostQuota = 5;
+    [SerializeField] private int bossGhostQuota = 1;
 
-    public int CurrentScore { get; private set; } = 0;
+    private int normalCount = 0;
+    private int specialCount = 0;
+    private int bossCount = 0;
+
+    [Header("UI設定")]
+    [SerializeField] private TextMeshProUGUI scoreText; 
+    
+    // ▼ 追加：Unityのインスペクターから画像名を直接入力できるようにしました
+    [Header("アイコンの画像名")]
+    [SerializeField] private string normalSpriteName = "ghost2";
+    [SerializeField] private string specialSpriteName = "ghost2_red";
+    [SerializeField] private string bossSpriteName = "ghost3_spark";
 
     private void Awake()
     {
-        // シーンに1つだけ存在する想定。念のため重複防止。
-        if (Instance != null && Instance != this)
+        if (Instance == null)
         {
-            Debug.LogWarning("[ScoreManager] シーン内に複数のScoreManagerがあります。後から生成された方は無視します。");
-            Destroy(gameObject);
-            return;
+            Instance = this;
         }
-        Instance = this;
+        else
+        {
+            Destroy(gameObject);
+        }
+    }
+
+    private void OnEnable()
+    {
+        Ghost.OnGhostDefeated += HandleGhostDefeated;
+    }
+
+    private void OnDisable()
+    {
+        Ghost.OnGhostDefeated -= HandleGhostDefeated;
     }
 
     private void Start()
     {
-        UpdateText();
+        UpdateScoreUI();
     }
 
-    private void OnDestroy()
+    private void HandleGhostDefeated(Ghost ghost)
     {
-        if (Instance == this)
+        if (ghost.Type == Ghost.GhostType.Normal) normalCount++;
+        else if (ghost.Type == Ghost.GhostType.Special) specialCount++;
+        else if (ghost.Type == Ghost.GhostType.Boss) bossCount++;
+        
+        UpdateScoreUI();
+
+        if (normalCount >= normalGhostQuota && 
+            specialCount >= specialGhostQuota && 
+            bossCount >= bossGhostQuota)
         {
-            Instance = null;
+            OnQuotaAchieved();
         }
     }
 
-    /// <summary>スコアを加算する(Ghost.cs の撃破時などから呼ばれる)</summary>
     public void AddScore(int amount)
     {
-        CurrentScore += amount;
-        UpdateText();
+        CurrentScore += amount; 
         OnScoreChanged?.Invoke(CurrentScore);
     }
 
-    /// <summary>スコアをリセットする(ステージ開始時などに使用)</summary>
-    public void ResetScore()
+    private void UpdateScoreUI()
     {
-        CurrentScore = 0;
-        UpdateText();
-        OnScoreChanged?.Invoke(CurrentScore);
-    }
+        if (scoreText == null) return;
 
-    private void UpdateText()
-    {
-        if (scoreText != null)
+        string uiText = "";
+
+        // ▼ 変更：index=0 等ではなく、指定した画像名(normalSpriteName等)で呼び出す
+        if (normalGhostQuota > 0)
         {
-            scoreText.text = string.Format(scoreFormat, CurrentScore);
+            uiText += $"<sprite name=\"{normalSpriteName}\"> x {normalGhostQuota} : {normalCount}\n";
         }
+        if (specialGhostQuota > 0)
+        {
+            uiText += $"<sprite name=\"{specialSpriteName}\"> x {specialGhostQuota} : {specialCount}\n";
+        }
+        if (bossGhostQuota > 0)
+        {
+            uiText += $"<sprite name=\"{bossSpriteName}\"> x {bossGhostQuota} : {bossCount}\n";
+        }
+
+        scoreText.text = uiText.TrimEnd();
+    }
+
+    public void SetQuotas(int normal, int special, int boss)
+    {
+        normalGhostQuota = normal;
+        specialGhostQuota = special;
+        bossGhostQuota = boss;
+        UpdateScoreUI();
+    }
+
+    private void OnQuotaAchieved()
+    {
+        // 全ノルマ達成時の処理
     }
 }
