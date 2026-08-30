@@ -1399,11 +1399,14 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::QuotaManager
   useQuotaForClear: 1
-  requiredScore: 200
-  requiredSpecialGhostPhotos: 3
+  quotaMode: 0
+  requiredScore: 150
+  requiredDefeatCount: 20
+  requiredSpecialGhostPhotos: 10
   scoreProgressText: {fileID: 0}
   specialPhotoProgressText: {fileID: 0}
   scoreProgressFormat: "\u30B9\u30B3\u30A2: {0} / {1}"
+  defeatCountProgressFormat: "\u6483\u7834\u6570: {0} / {1}"
   specialPhotoProgressFormat: "\u304A\u5316\u3051\uFF08\u8D64\uFF09: {0} / {1}"
   debugLog: 1
 --- !u!4 &649471391
@@ -2870,8 +2873,8 @@ MonoBehaviour:
   spawnViewportMax: {x: 0.9, y: 0.9}
   normalSpawnInterval: 0.5
   maxAliveNormalGhosts: 5
-  normalDefeatsToTriggerSpecial: 5
-  specialSpawnCount: 10
+  normalDefeatsToTriggerSpecial: 4
+  specialSpawnCount: 3
   bossEnabled: 1
   bossTriggerCondition: 2
   totalDefeatsToTriggerBoss: 15
@@ -3823,6 +3826,6 @@ SceneRoots:
   - {fileID: 1110387711}
   - {fileID: 1802838754}
   - {fileID: 631256147}
-  - {fileID: 649471391}
   - {fileID: 65312073}
+  - {fileID: 649471391}
   - {fileID: 1367117545}
