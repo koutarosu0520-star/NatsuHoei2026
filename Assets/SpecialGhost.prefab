@@ -82,7 +82,7 @@ SpriteRenderer:
   m_GlobalIlluminationMeshLod: 0
   m_SortingLayerID: 0
   m_SortingLayer: 0
-  m_SortingOrder: 0
+  m_SortingOrder: 10
   m_MaskInteraction: 0
   m_Sprite: {fileID: -7677184074401393670, guid: 7356b2e9bc918874d8b330a416384ec3, type: 3}
   m_Color: {r: 1, g: 1, b: 1, a: 1}
@@ -181,6 +181,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::Ghost
   ghostType: 1
+  spriteFacesRightByDefault: 0
   moveSpeedNormal: 1.5
   moveSpeedSpecial: 9
   wanderRadius: 9
@@ -204,6 +205,7 @@ MonoBehaviour:
   shakeAmount: 0.05
   shakeSpeed: 25
   fadeDuration: 0.8
+  spawnFadeInDuration: 0.6
   spawnSound: {fileID: 0}
   spawnSoundVolume: 1
   deathSound: {fileID: 8300000, guid: 3599f761f05bced4eb96362a65ccae1d, type: 3}

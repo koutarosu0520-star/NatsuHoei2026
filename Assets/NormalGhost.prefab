@@ -13,7 +13,7 @@ GameObject:
   - component: {fileID: 2167784193419517113}
   - component: {fileID: 8697914920413876079}
   - component: {fileID: 8021083027919718915}
-  m_Layer: 4
+  m_Layer: 0
   m_Name: NormalGhost
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -82,7 +82,7 @@ SpriteRenderer:
   m_GlobalIlluminationMeshLod: 0
   m_SortingLayerID: 0
   m_SortingLayer: 0
-  m_SortingOrder: 0
+  m_SortingOrder: 10
   m_MaskInteraction: 0
   m_Sprite: {fileID: 4448715427215634006, guid: 80ae2d93f5d9df94bb85789367d70175, type: 3}
   m_Color: {r: 1, g: 1, b: 1, a: 1}
@@ -181,6 +181,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::Ghost
   ghostType: 0
+  spriteFacesRightByDefault: 0
   moveSpeedNormal: 1.5
   moveSpeedSpecial: 2.2
   wanderRadius: 3

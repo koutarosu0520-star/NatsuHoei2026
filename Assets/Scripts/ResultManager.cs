@@ -33,6 +33,11 @@ public class ResultManager : MonoBehaviour
     [SerializeField] private string clearMessage = "GAME CLEAR";
     [SerializeField] private string gameOverMessage = "GAME OVER";
 
+    [Header("サウンド(任意)")]
+    [SerializeField] private AudioClip clearSound;
+    [SerializeField] private AudioClip gameOverSound;
+    [SerializeField] private float resultSoundVolume = 1f;
+
     [Header("集計表示(任意・未設定の項目は表示しなくてもOK)")]
     [SerializeField] private Text finalScoreText;
     [SerializeField] private Text normalGhostCountText;   // 白いお化け(普通の幽霊)
@@ -131,6 +136,13 @@ public class ResultManager : MonoBehaviour
         if (resultText != null)
         {
             resultText.text = cleared ? clearMessage : gameOverMessage;
+        }
+
+        AudioClip soundToPlay = cleared ? clearSound : gameOverSound;
+        if (soundToPlay != null)
+        {
+            // Time.timeScale が0の状態でも、音自体は通常通り再生される
+            AudioSource.PlayClipAtPoint(soundToPlay, Camera.main != null ? Camera.main.transform.position : transform.position, resultSoundVolume);
         }
 
         int finalScore = ScoreManager.Instance != null ? ScoreManager.Instance.CurrentScore : 0;

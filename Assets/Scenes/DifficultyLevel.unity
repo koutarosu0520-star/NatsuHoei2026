@@ -559,6 +559,7 @@ GameObject:
   - component: {fileID: 867409840}
   - component: {fileID: 867409839}
   - component: {fileID: 867409838}
+  - component: {fileID: 867409841}
   m_Layer: 5
   m_Name: Difficulty1
   m_TagString: Untagged
@@ -680,6 +681,20 @@ CanvasRenderer:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 867409836}
   m_CullTransparentMesh: 1
+--- !u!114 &867409841
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 867409836}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 6e12aeab60f10d34eac636554dac6aa7, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::ButtonClickSound
+  clickSound: {fileID: 8300000, guid: 6431550937647ef4a90d35945619c956, type: 3}
+  volume: 1
 --- !u!1 &1071368440
 GameObject:
   m_ObjectHideFlags: 0
@@ -692,6 +707,7 @@ GameObject:
   - component: {fileID: 1071368444}
   - component: {fileID: 1071368443}
   - component: {fileID: 1071368442}
+  - component: {fileID: 1071368445}
   m_Layer: 5
   m_Name: Difficulty3
   m_TagString: Untagged
@@ -813,6 +829,20 @@ CanvasRenderer:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1071368440}
   m_CullTransparentMesh: 1
+--- !u!114 &1071368445
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1071368440}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 6e12aeab60f10d34eac636554dac6aa7, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::ButtonClickSound
+  clickSound: {fileID: 8300000, guid: 6431550937647ef4a90d35945619c956, type: 3}
+  volume: 1
 --- !u!1 &1380847893
 GameObject:
   m_ObjectHideFlags: 0
@@ -962,6 +992,7 @@ GameObject:
   - component: {fileID: 1509518874}
   - component: {fileID: 1509518873}
   - component: {fileID: 1509518872}
+  - component: {fileID: 1509518875}
   m_Layer: 5
   m_Name: Difficulty2
   m_TagString: Untagged
@@ -1083,6 +1114,20 @@ CanvasRenderer:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1509518870}
   m_CullTransparentMesh: 1
+--- !u!114 &1509518875
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1509518870}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 6e12aeab60f10d34eac636554dac6aa7, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::ButtonClickSound
+  clickSound: {fileID: 8300000, guid: 6431550937647ef4a90d35945619c956, type: 3}
+  volume: 1
 --- !u!1 &1642418498
 GameObject:
   m_ObjectHideFlags: 0

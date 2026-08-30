@@ -33,7 +33,8 @@ public class Ghost : MonoBehaviour
     [Header("種類")]
     [SerializeField] private GhostType ghostType = GhostType.Normal;
 
-    [Header("移動設定")]
+    [Header("向き反転")]
+    [SerializeField] private bool spriteFacesRightByDefault = true; // 元絵が右向きならtrue、左向きならfalseにする(逆になったら切り替える)
     [SerializeField] private float moveSpeedNormal = 1.5f;
     [SerializeField] private float moveSpeedSpecial = 2.2f; // 特別な幽霊はやや速め
     [SerializeField] private float wanderRadius = 3f;       // 現在地からどこまでランダムな目的地を選ぶか
@@ -60,6 +61,7 @@ public class Ghost : MonoBehaviour
     [SerializeField] private float stunDuration = 5f;             // スタン(写真で撃てる状態)の持続時間
     [SerializeField] private float vanishFadeDuration = 0.5f;     // スタン復帰時、姿を消す/現すフェードの時間
     [SerializeField] private float offscreenReappearDelay = 1f;   // 姿を消してから画面外に移動し、再登場するまでの待機時間
+    [SerializeField] private Sprite stunnedSprite;                 // スタン中に切り替える見た目(未設定ならnormalSpriteのまま)
 
     [Header("演出")]
     [SerializeField] private Sprite normalSprite;
@@ -74,6 +76,7 @@ public class Ghost : MonoBehaviour
     [SerializeField] private float spawnSoundVolume = 1f;
     [SerializeField] private AudioClip deathSound;
     [SerializeField] private float deathSoundVolume = 1f;
+    [SerializeField] private AudioClip bossDefeatSound; // ボスが完全に撃破された時専用(未設定ならdeathSoundを使う)
 
     [Header("スコア")]
     [SerializeField] private int scoreValue = 10;
@@ -182,6 +185,20 @@ public class Ghost : MonoBehaviour
             return;
         }
 
+        bool isBossStunned = ghostType == GhostType.Boss && bossPhase == BossPhase.Stunned;
+
+        if (isBossStunned)
+        {
+            // スタン中は移動・ライト判定・画面外消滅を一切行わず、その場で静止させる。
+            // タイマーだけは進め、時間切れならライトフェーズへ戻す。
+            stunTimer -= Time.deltaTime;
+            if (stunTimer <= 0f)
+            {
+                EndStunWithoutHit();
+            }
+            return;
+        }
+
         Wander();
 
         if (IsOutsideScreen())
@@ -189,16 +206,6 @@ public class Ghost : MonoBehaviour
             // 画面外に出た場合は演出なし・得点なしで即座に消滅する
             Destroy(gameObject);
             return;
-        }
-
-        // ボスのスタン中はタイマーを進める(写真で撃たれず時間切れになったらライトフェーズへ戻す)
-        if (ghostType == GhostType.Boss && bossPhase == BossPhase.Stunned)
-        {
-            stunTimer -= Time.deltaTime;
-            if (stunTimer <= 0f)
-            {
-                EndStunWithoutHit();
-            }
         }
 
         bool canTakeLightDamage =
@@ -268,6 +275,9 @@ public class Ghost : MonoBehaviour
 
         Vector2 pos = basePosition;
         Vector2 next = Vector2.MoveTowards(pos, currentTarget, MoveSpeed * Time.deltaTime);
+
+        UpdateFacingDirection(next.x - pos.x);
+
         basePosition = new Vector3(next.x, next.y, basePosition.z);
     }
 
@@ -290,12 +300,23 @@ public class Ghost : MonoBehaviour
         next.x = Mathf.Clamp(next.x, areaMin.x, areaMax.x);
         next.y = Mathf.Clamp(next.y, areaMin.y, areaMax.y);
 
+        UpdateFacingDirection(next.x - basePosition.x);
+
         basePosition = new Vector3(next.x, next.y, basePosition.z);
 
         // 逃走中は、ライトが外れた後の徘徊が変な方向へ飛ばないよう、
         // 現在地を新しい目的地として同期しておく
         currentTarget = next;
         wanderTimer = wanderInterval;
+    }
+
+    /// <summary>移動方向(横方向)に応じてスプライトを左右反転させる</summary>
+    private void UpdateFacingDirection(float moveDeltaX)
+    {
+        if (Mathf.Abs(moveDeltaX) < 0.0001f) return; // ほぼ動いていない時は向きを変えない
+
+        bool movingRight = moveDeltaX > 0f;
+        spriteRenderer.flipX = movingRight != spriteFacesRightByDefault;
     }
 
     private void PickNewWanderTarget()
@@ -416,6 +437,11 @@ public class Ghost : MonoBehaviour
         bossPhase = BossPhase.Stunned;
         stunTimer = stunDuration;
 
+        if (stunnedSprite != null)
+        {
+            spriteRenderer.sprite = stunnedSprite;
+        }
+
         if (debugLog)
         {
             Debug.Log($"[{gameObject.name}] ボスがスタンしました(残り{stunDuration}秒以内に撮影してください)");
@@ -445,6 +471,12 @@ public class Ghost : MonoBehaviour
         // 光源との接触状態をリセットしておく(コライダーを切るため)
         isLit = false;
         litSpotlightTransform = null;
+
+        // 見た目を通常状態に戻す(姿を消している間に切り替えるので違和感がない)
+        if (normalSprite != null)
+        {
+            spriteRenderer.sprite = normalSprite;
+        }
 
         StartCoroutine(VanishAndReappearRoutine());
     }
@@ -548,9 +580,11 @@ public class Ghost : MonoBehaviour
         OnGhostDefeated?.Invoke(this);
 
         // やられ音を再生(このオブジェクトが破棄されても音は最後まで鳴る)
-        if (deathSound != null)
+        // ボスの場合は専用の撃破音(bossDefeatSound)を優先する。未設定なら通常のdeathSoundにフォールバックする
+        AudioClip soundToPlay = (ghostType == GhostType.Boss && bossDefeatSound != null) ? bossDefeatSound : deathSound;
+        if (soundToPlay != null)
         {
-            AudioSource.PlayClipAtPoint(deathSound, transform.position, deathSoundVolume);
+            AudioSource.PlayClipAtPoint(soundToPlay, transform.position, deathSoundVolume);
         }
 
         if (deadSprite != null)
