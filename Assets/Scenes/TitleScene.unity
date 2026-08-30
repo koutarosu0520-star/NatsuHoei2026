@@ -417,6 +417,7 @@ GameObject:
   m_Component:
   - component: {fileID: 946853562}
   - component: {fileID: 946853561}
+  - component: {fileID: 946853563}
   m_Layer: 0
   m_Name: MusicManager
   m_TagString: Untagged
@@ -453,6 +454,19 @@ Transform:
   m_Children: []
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &946853563
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 946853560}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 3704ec542a2c8264098f2cb71186ebd3, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::SfxManager
+  defaultVolume: 1
 --- !u!1 &996946448
 GameObject:
   m_ObjectHideFlags: 0
@@ -649,6 +663,7 @@ GameObject:
   - component: {fileID: 1355950370}
   - component: {fileID: 1355950369}
   - component: {fileID: 1355950368}
+  - component: {fileID: 1355950371}
   m_Layer: 5
   m_Name: StartButton
   m_TagString: Untagged
@@ -770,6 +785,20 @@ CanvasRenderer:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1355950366}
   m_CullTransparentMesh: 1
+--- !u!114 &1355950371
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1355950366}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 6e12aeab60f10d34eac636554dac6aa7, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::ButtonClickSound
+  clickSound: {fileID: 8300000, guid: 6431550937647ef4a90d35945619c956, type: 3}
+  volume: 1
 --- !u!1 &1743727588
 GameObject:
   m_ObjectHideFlags: 0

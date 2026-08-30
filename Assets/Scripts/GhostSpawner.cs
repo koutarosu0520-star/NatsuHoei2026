@@ -1,6 +1,7 @@
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.UI;
 
 /// <summary>
 /// 普通の幽霊と特別な幽霊を出現させるスポナー。
@@ -27,9 +28,6 @@ public class GhostSpawner : MonoBehaviour
     [Header("ゲーム進行(GameController.csと連携)")]
     [SerializeField] private GameController gameController; // PlayState.Play の間だけ出現処理を行う
 
-    [Header("クリア時の演出(ボス撃破時)")]
-    [SerializeField] private GameObject clearPanel; // ボス撃破時に表示するパネル(未設定でも可)
-
     [Header("プレハブ")]
     [SerializeField] private Ghost normalGhostPrefab;
     [SerializeField] private Ghost specialGhostPrefab;
@@ -53,6 +51,11 @@ public class GhostSpawner : MonoBehaviour
     [SerializeField] private BossTriggerCondition bossTriggerCondition = BossTriggerCondition.Either;
     [SerializeField] private int totalDefeatsToTriggerBoss = 15; // 普通+特別の合計撃破数がこれに達したらボスを出す(仮の値)
     [SerializeField] private int scoreToTriggerBoss = 200;         // 合計スコア(ScoreManager基準)がこれに達したらボスを出す(仮の値)
+
+    [Header("ボス撃破状況の表示(任意・LV3用)")]
+    [SerializeField] private Text bossDefeatStatusText;
+    [SerializeField] private string bossNotDefeatedFormat = "ボス撃破: 0 / 1";
+    [SerializeField] private string bossDefeatedFormat = "ボス撃破: 1 / 1";
 
     [Header("デバッグ")]
     [SerializeField] private bool debugLog = true;
@@ -79,6 +82,8 @@ public class GhostSpawner : MonoBehaviour
         {
             targetCamera = Camera.main;
         }
+
+        UpdateBossDefeatStatusText(defeated: false);
     }
 
     private void Update()
@@ -118,28 +123,19 @@ public class GhostSpawner : MonoBehaviour
 
     private void HandleGhostDefeated(Ghost ghost)
     {
-        // ボスを倒したらステージクリア扱いにする
+        // ボスを倒しても、この場ではゲームを終了させない。
+        // ノルマ達成(QuotaManager)と同様に「倒した」という事実だけを記録し、
+        // 実際の終了はタイムアップ(GameController)に任せる。
+        // クリア/ゲームオーバーの最終判定と表示は ResultManager が行う
+        // (ResultManager は Ghost.OnGhostDefeated を直接購読してボス撃破を検知している)。
         if (ghost.Type == Ghost.GhostType.Boss)
         {
             if (debugLog)
             {
-                Debug.Log("[GhostSpawner] ボスを撃破しました。ステージクリアにします");
+                Debug.Log("[GhostSpawner] ボスを撃破しました(まだゲームは終了しません。タイムアップ時にクリア扱いになります)");
             }
 
-            if (gameController != null)
-            {
-                gameController.CurrentState = GameController.PlayState.Finish;
-            }
-
-            // GameController はタイムアップ時しか停止処理をしないため、
-            // ボス撃破によるクリアはここで明示的に時間を止め、クリア画面を表示する
-            Time.timeScale = 0f;
-
-            if (clearPanel != null)
-            {
-                clearPanel.SetActive(true);
-                clearPanel.transform.SetAsLastSibling();
-            }
+            UpdateBossDefeatStatusText(defeated: true);
 
             return; // ボスは合計撃破数のカウントや後続の出現判定に含めない
         }
@@ -234,6 +230,14 @@ public class GhostSpawner : MonoBehaviour
         {
             Debug.Log("[GhostSpawner] ボスを出現させました");
         }
+    }
+
+    /// <summary>ボス撃破状況のテキスト表示を更新する(Boss Defeat Status Text が未設定なら何もしない)</summary>
+    private void UpdateBossDefeatStatusText(bool defeated)
+    {
+        if (bossDefeatStatusText == null) return;
+
+        bossDefeatStatusText.text = defeated ? bossDefeatedFormat : bossNotDefeatedFormat;
     }
 
     private Vector3 GetRandomSpawnPosition()
