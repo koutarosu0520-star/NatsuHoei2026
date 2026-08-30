@@ -58,7 +58,7 @@ public class Ghost : MonoBehaviour
     [Header("ボス設定(Ghost Type = Boss の時のみ使用)")]
     [SerializeField] private float bossScaleMultiplier = 1.8f;   // 通常の幽霊より大きく表示する倍率
     [SerializeField] private int requiredPhotoHits = 3;           // 撃破に必要な写真ヒット数
-    [SerializeField] private float stunDuration = 5f;             // スタン(写真で撃てる状態)の持続時間
+    [SerializeField] private float stunDuration = 10f;             // スタン(写真で撃てる状態)の持続時間
     [SerializeField] private float vanishFadeDuration = 0.5f;     // スタン復帰時、姿を消す/現すフェードの時間
     [SerializeField] private float offscreenReappearDelay = 1f;   // 姿を消してから画面外に移動し、再登場するまでの待機時間
     [SerializeField] private Sprite stunnedSprite;                 // スタン中に切り替える見た目(未設定ならnormalSpriteのまま)
