@@ -2757,11 +2757,14 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::QuotaManager
   useQuotaForClear: 1
+  quotaMode: 0
   requiredScore: 200
+  requiredDefeatCount: 20
   requiredSpecialGhostPhotos: 3
   scoreProgressText: {fileID: 0}
   specialPhotoProgressText: {fileID: 0}
   scoreProgressFormat: "\u30B9\u30B3\u30A2: {0} / {1}"
+  defeatCountProgressFormat: "\u6483\u7834\u6570: {0} / {1}"
   specialPhotoProgressFormat: "\u304A\u5316\u3051\uFF08\u8D64\uFF09: {0} / {1}"
   debugLog: 1
 --- !u!4 &1419912207
@@ -3047,8 +3050,8 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::GhostSpawner
   gameController: {fileID: 700411551}
-  normalGhostPrefab: {fileID: 8021083027919718915, guid: 55d890d828cfe764ebb678416cdbbe68, type: 3}
-  specialGhostPrefab: {fileID: 6260124911411633957, guid: c64281dfcf89f7247bddfb7ca47fd04f, type: 3}
+  normalGhostPrefab: {fileID: 4647794492075364343, guid: a729a85c00ba7504d810121cb1c1e228, type: 3}
+  specialGhostPrefab: {fileID: 1188456564829933476, guid: bb6b81fbec371204d832ff146c4d13c2, type: 3}
   bossGhostPrefab: {fileID: 7373506401746608694, guid: fedf6cd2f41914741b446ce2c44ae9cd, type: 3}
   targetCamera: {fileID: 1823132000}
   spawnViewportMin: {x: 0.1, y: 0.1}
@@ -3405,12 +3408,12 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::PhotoModeController
   bindings:
-  - frame: {fileID: 260300881}
-    key: 1
-  - frame: {fileID: 1051952021}
-    key: 2
-  - frame: {fileID: 267824716}
-    key: 3
+  - frame: {fileID: 0}
+    key: 0
+  - frame: {fileID: 0}
+    key: 0
+  - frame: {fileID: 0}
+    key: 0
   shutterSound: {fileID: 8300000, guid: 45299780cec850f4a8f4c6f093b6e43d, type: 3}
   shutterMissSound: {fileID: 8300000, guid: 45299780cec850f4a8f4c6f093b6e43d, type: 3}
   shutterSoundVolume: 0.01

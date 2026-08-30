@@ -58,7 +58,7 @@ public class Ghost : MonoBehaviour
     [Header("ボス設定(Ghost Type = Boss の時のみ使用)")]
     [SerializeField] private float bossScaleMultiplier = 1.8f;   // 通常の幽霊より大きく表示する倍率
     [SerializeField] private int requiredPhotoHits = 3;           // 撃破に必要な写真ヒット数
-    [SerializeField] private float stunDuration = 10f;             // スタン(写真で撃てる状態)の持続時間
+    [SerializeField] private float stunDuration = 5f;             // スタン(写真で撃てる状態)の持続時間
     [SerializeField] private float vanishFadeDuration = 0.5f;     // スタン復帰時、姿を消す/現すフェードの時間
     [SerializeField] private float offscreenReappearDelay = 1f;   // 姿を消してから画面外に移動し、再登場するまでの待機時間
     [SerializeField] private Sprite stunnedSprite;                 // スタン中に切り替える見た目(未設定ならnormalSpriteのまま)
@@ -77,6 +77,8 @@ public class Ghost : MonoBehaviour
     [SerializeField] private AudioClip deathSound;
     [SerializeField] private float deathSoundVolume = 1f;
     [SerializeField] private AudioClip bossDefeatSound; // ボスが完全に撃破された時専用(未設定ならdeathSoundを使う)
+    [SerializeField] private AudioClip bossHitNotDefeatedSound; // ボスがまだヒット数不足で撃破に至らなかった時専用(任意)
+    [SerializeField] private float bossHitNotDefeatedSoundVolume = 1f;
 
     [Header("スコア")]
     [SerializeField] private int scoreValue = 10;
@@ -425,7 +427,12 @@ public class Ghost : MonoBehaviour
             }
             else
             {
-                // まだ撃破に至らない場合は、次のライトフェーズへ戻る(姿を消して画面外から再登場)
+                // まだ撃破に至らない場合は、専用の音を鳴らしてから次のライトフェーズへ戻る(姿を消して画面外から再登場)
+                if (bossHitNotDefeatedSound != null)
+                {
+                    AudioSource.PlayClipAtPoint(bossHitNotDefeatedSound, transform.position, bossHitNotDefeatedSoundVolume);
+                }
+
                 RecoverFromStun();
             }
         }
